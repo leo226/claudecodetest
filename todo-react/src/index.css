@@ -31,6 +31,17 @@ body::before {
   z-index: 999;
 }
 
+[data-theme="dark"] {
+  --ink: #e4dbd0;
+  --ink-faint: #7a7268;
+  --paper: #181410;
+  --paper-warm: #211c18;
+  --crease: #352e27;
+  --accent: #c4573e;
+  --accent-soft: #4a2218;
+  --done-ink: #524840;
+}
+
 @keyframes fadeSlideDown {
   from { opacity: 0; transform: translateY(-10px); }
   to   { opacity: 1; transform: translateY(0); }

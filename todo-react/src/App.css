@@ -53,13 +53,45 @@
   color: var(--accent);
 }
 
+.header-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
 .header-date {
   font-family: 'DM Mono', monospace;
   font-size: 11px;
   color: var(--ink-faint);
-  margin-top: 10px;
   font-weight: 300;
   letter-spacing: 0.05em;
+}
+
+.theme-btn {
+  background: none;
+  border: 1px solid var(--crease);
+  border-radius: 2px;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--ink-faint);
+  transition: all 0.2s ease;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.theme-btn svg {
+  width: 13px;
+  height: 13px;
+}
+
+.theme-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent-soft);
 }
 
 /* Stats */
