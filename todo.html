@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>备忘录</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #1c1812;
+    --ink-faint: #8a7f72;
+    --paper: #f7f2ea;
+    --paper-warm: #ede6d8;
+    --crease: #d9cfc0;
+    --accent: #b5432a;
+    --accent-soft: #e8c5bb;
+    --done-ink: #a09282;
+    --shadow: rgba(28,24,18,0.12);
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Noto Serif SC', serif;
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  /* Subtle paper grain */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  .page {
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 60px 20px 100px;
+  }
+
+  .notebook {
+    width: 100%;
+    max-width: 580px;
+    position: relative;
+  }
+
+  /* Red margin line like a real notebook */
+  .notebook::before {
+    content: '';
+    position: absolute;
+    left: 52px;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--accent-soft);
+    opacity: 0.6;
+  }
+
+  /* Header */
+  .header {
+    padding: 0 0 40px 72px;
+    position: relative;
+    animation: fadeSlideDown 0.6s ease both;
+  }
+
+  .header-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 300;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+
+  .header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 38px;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+
+  .header h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .header-date {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-faint);
+    margin-top: 10px;
+    font-weight: 300;
+    letter-spacing: 0.05em;
+  }
+
+  /* Stats */
+  .stats {
+    padding: 0 0 32px 72px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    animation: fadeSlideDown 0.6s 0.1s ease both;
+  }
+
+  .stat {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 400;
+    color: var(--ink);
+    line-height: 1;
+    transition: all 0.3s ease;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--ink-faint);
+    letter-spacing: 0.05em;
+  }
+
+  .stat-divider {
+    width: 1px;
+    height: 24px;
+    background: var(--crease);
+  }
+
+  /* Filters */
+  .filters {
+    padding: 0 0 28px 72px;
+    display: flex;
+    gap: 4px;
+    animation: fadeSlideDown 0.6s 0.15s ease both;
+  }
+
+  .filter-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    background: none;
+    border: 1px solid transparent;
+    padding: 5px 12px;
+    cursor: pointer;
+    color: var(--ink-faint);
+    border-radius: 2px;
+    transition: all 0.2s ease;
+  }
+
+  .filter-btn:hover {
+    color: var(--ink);
+    border-color: var(--crease);
+  }
+
+  .filter-btn.active {
+    color: var(--accent);
+    border-color: var(--accent-soft);
+    background: rgba(181,67,42,0.05);
+  }
+
+  /* Input */
+  .input-row {
+    padding: 0 0 0 52px;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    position: relative;
+    animation: fadeSlideDown 0.6s 0.2s ease both;
+    margin-bottom: 8px;
+  }
+
+  .line-num {
+    width: 20px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-faint);
+    opacity: 0.5;
+    text-align: right;
+    flex-shrink: 0;
+    margin-right: 20px;
+    user-select: none;
+  }
+
+  .add-input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    font-family: 'Noto Serif SC', serif;
+    font-size: 15px;
+    color: var(--ink);
+    padding: 10px 0;
+    border-bottom: 1px solid var(--crease);
+    transition: border-color 0.2s ease;
+    caret-color: var(--accent);
+  }
+
+  .add-input::placeholder {
+    color: var(--crease);
+    font-style: italic;
+  }
+
+  .add-input:focus {
+    border-bottom-color: var(--accent);
+  }
+
+  .add-btn {
+    width: 28px;
+    height: 28px;
+    background: var(--ink);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 12px;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+    color: var(--paper);
+  }
+
+  .add-btn:hover {
+    background: var(--accent);
+    transform: scale(1.1);
+  }
+
+  .add-btn svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  /* Priority selector */
+  .priority-selector {
+    display: flex;
+    gap: 4px;
+    margin-left: 10px;
+    flex-shrink: 0;
+  }
+
+  .pri-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    background: none;
+    border: 1px solid var(--crease);
+    border-radius: 2px;
+    padding: 3px 7px;
+    cursor: pointer;
+    color: var(--ink-faint);
+    transition: all 0.15s ease;
+    line-height: 1;
+  }
+
+  .pri-btn[data-pri="high"].active  { border-color: #b5432a; color: #b5432a; background: rgba(181,67,42,0.07); }
+  .pri-btn[data-pri="medium"].active { border-color: #c47a2a; color: #c47a2a; background: rgba(196,122,42,0.07); }
+  .pri-btn[data-pri="low"].active   { border-color: var(--done-ink); color: var(--done-ink); background: rgba(160,146,130,0.07); }
+
+  .pri-btn:not(.active):hover { border-color: var(--ink-faint); color: var(--ink); }
+
+  /* Priority dot on items */
+  .pri-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-right: 10px;
+    margin-left: -4px;
+    transition: transform 0.2s ease;
+  }
+
+  .pri-dot[data-pri="high"]   { background: #b5432a; }
+  .pri-dot[data-pri="medium"] { background: #c47a2a; }
+  .pri-dot[data-pri="low"]    { background: var(--crease); }
+
+  /* Divider */
+  .section-rule {
+    margin: 24px 0 0 72px;
+    border: none;
+    border-top: 1px solid var(--crease);
+    animation: fadeSlideDown 0.6s 0.25s ease both;
+  }
+
+  /* Todo list */
+  .todo-list {
+    list-style: none;
+    padding: 0;
+  }
+
+  .todo-item {
+    padding: 0 0 0 52px;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    position: relative;
+    animation: itemAppear 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    border-bottom: 1px solid var(--paper-warm);
+    transition: background 0.15s ease;
+  }
+
+  .todo-item:hover {
+    background: rgba(28,24,18,0.02);
+  }
+
+  .todo-item.removing {
+    animation: itemRemove 0.3s ease forwards;
+  }
+
+  .todo-item .line-num {
+    padding: 12px 0;
+  }
+
+  /* Custom checkbox */
+  .check-area {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    margin-right: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  .check-area input[type="checkbox"] {
+    display: none;
+  }
+
+  .check-box {
+    width: 16px;
+    height: 16px;
+    border: 1.5px solid var(--crease);
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .check-area:hover .check-box {
+    border-color: var(--accent);
+  }
+
+  .check-mark {
+    width: 0;
+    height: 0;
+    opacity: 0;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  input[type="checkbox"]:checked ~ .check-box {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  input[type="checkbox"]:checked ~ .check-box .check-mark {
+    width: 8px;
+    height: 8px;
+    opacity: 1;
+  }
+
+  /* Task text */
+  .task-text {
+    flex: 1;
+    padding: 12px 0;
+    font-size: 15px;
+    color: var(--ink);
+    transition: all 0.3s ease;
+    line-height: 1.5;
+    cursor: default;
+  }
+
+  .todo-item.done .task-text {
+    color: var(--done-ink);
+    text-decoration: line-through;
+    text-decoration-color: var(--crease);
+  }
+
+  /* Delete */
+  .delete-btn {
+    opacity: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px 12px;
+    color: var(--crease);
+    font-size: 16px;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+
+  .todo-item:hover .delete-btn {
+    opacity: 1;
+  }
+
+  .delete-btn:hover {
+    color: var(--accent);
+    transform: scale(1.2);
+  }
+
+  /* Empty state */
+  .empty-state {
+    padding: 60px 0 40px 72px;
+    animation: fadeSlideDown 0.5s ease both;
+  }
+
+  .empty-state p {
+    font-style: italic;
+    color: var(--ink-faint);
+    font-size: 14px;
+  }
+
+  /* Animations */
+  @keyframes fadeSlideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes itemAppear {
+    from { opacity: 0; transform: translateX(-8px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  @keyframes itemRemove {
+    to { opacity: 0; transform: translateX(12px); max-height: 0; padding-top: 0; padding-bottom: 0; }
+  }
+
+  /* Footer */
+  .footer {
+    margin-top: 48px;
+    padding: 0 0 0 72px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--crease);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    animation: fadeSlideDown 0.6s 0.3s ease both;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="notebook">
+
+    <div class="header">
+      <div class="header-label">备忘录 / Memo</div>
+      <h1>今日<em>待办</em></h1>
+      <div class="header-date" id="headerDate"></div>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="stat-num" id="statTotal">0</span>
+        <span class="stat-label">全部</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <span class="stat-num" id="statPending">0</span>
+        <span class="stat-label">待完成</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <span class="stat-num" id="statDone">0</span>
+        <span class="stat-label">已完成</span>
+      </div>
+    </div>
+
+    <div class="filters">
+      <button class="filter-btn active" data-filter="all">全部</button>
+      <button class="filter-btn" data-filter="pending">进行中</button>
+      <button class="filter-btn" data-filter="done">已完成</button>
+    </div>
+
+    <div class="input-row">
+      <span class="line-num">+</span>
+      <input class="add-input" id="addInput" type="text" placeholder="添加新任务，按 Enter 提交…" maxlength="100" autocomplete="off">
+      <div class="priority-selector">
+        <button class="pri-btn" data-pri="high">高</button>
+        <button class="pri-btn active" data-pri="medium">中</button>
+        <button class="pri-btn" data-pri="low">低</button>
+      </div>
+      <button class="add-btn" id="addBtn" title="添加">
+        <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="6" y1="1" x2="6" y2="11"/>
+          <line x1="1" y1="6" x2="11" y2="6"/>
+        </svg>
+      </button>
+    </div>
+
+    <hr class="section-rule">
+
+    <ul class="todo-list" id="todoList"></ul>
+
+    <div class="empty-state" id="emptyState" style="display:none">
+      <p>— 此处空空如也 —</p>
+    </div>
+
+    <div class="footer">
+      <span id="footerText">使用 Enter 快速添加任务</span>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // State
+  let todos = JSON.parse(localStorage.getItem('todos_v1') || '[]');
+  // Backfill priority for existing items that don't have it
+  todos.forEach(t => { if (!t.priority) t.priority = 'medium'; });
+  let filter = 'all';
+  let selectedPriority = 'medium';
+  let nextId = parseInt(localStorage.getItem('nextId') || '1');
+
+  // Date
+  const now = new Date();
+  const weekdays = ['周日','周一','周二','周三','周四','周五','周六'];
+  document.getElementById('headerDate').textContent =
+    `${now.getFullYear()} 年 ${now.getMonth()+1} 月 ${now.getDate()} 日　${weekdays[now.getDay()]}`;
+
+  function save() {
+    localStorage.setItem('todos_v1', JSON.stringify(todos));
+    localStorage.setItem('nextId', String(nextId));
+  }
+
+  function getFiltered() {
+    if (filter === 'pending') return todos.filter(t => !t.done);
+    if (filter === 'done') return todos.filter(t => t.done);
+    return todos;
+  }
+
+  function updateStats() {
+    const total = todos.length;
+    const done = todos.filter(t => t.done).length;
+    document.getElementById('statTotal').textContent = total;
+    document.getElementById('statPending').textContent = total - done;
+    document.getElementById('statDone').textContent = done;
+  }
+
+  function renderList() {
+    const list = document.getElementById('todoList');
+    const empty = document.getElementById('emptyState');
+    const filtered = getFiltered();
+
+    list.innerHTML = '';
+
+    if (filtered.length === 0) {
+      empty.style.display = 'block';
+    } else {
+      empty.style.display = 'none';
+      filtered.forEach((todo, idx) => {
+        const li = createItem(todo, idx + 1);
+        list.appendChild(li);
+      });
+    }
+
+    updateStats();
+  }
+
+  function createItem(todo, lineNum) {
+    const li = document.createElement('li');
+    li.className = 'todo-item' + (todo.done ? ' done' : '');
+    li.dataset.id = todo.id;
+
+    li.innerHTML = `
+      <span class="line-num">${String(lineNum).padStart(2,'0')}</span>
+      <label class="check-area">
+        <input type="checkbox" ${todo.done ? 'checked' : ''}>
+        <span class="check-box">
+          <svg class="check-mark" viewBox="0 0 8 8" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="1,4.5 3.2,6.5 7,2"/>
+          </svg>
+        </span>
+      </label>
+      <span class="pri-dot" data-pri="${todo.priority || 'medium'}" title="${{high:'高优先级',medium:'中优先级',low:'低优先级'}[todo.priority||'medium']}"></span>
+      <span class="task-text">${escapeHtml(todo.text)}</span>
+      <button class="delete-btn" title="删除">×</button>
+    `;
+
+    li.querySelector('input[type="checkbox"]').addEventListener('change', e => {
+      todo.done = e.target.checked;
+      save();
+      li.classList.toggle('done', todo.done);
+      updateStats();
+      if (filter !== 'all') {
+        animateRemove(li, () => renderList());
+      }
+    });
+
+    li.querySelector('.delete-btn').addEventListener('click', () => {
+      animateRemove(li, () => {
+        todos = todos.filter(t => t.id !== todo.id);
+        save();
+        renderList();
+      });
+    });
+
+    return li;
+  }
+
+  function animateRemove(el, cb) {
+    el.style.overflow = 'hidden';
+    const h = el.offsetHeight;
+    el.style.maxHeight = h + 'px';
+    el.classList.add('removing');
+    el.addEventListener('animationend', () => {
+      el.style.maxHeight = '0';
+      cb();
+    }, { once: true });
+  }
+
+  function addTodo(text) {
+    text = text.trim();
+    if (!text) return;
+    todos.push({ id: nextId++, text, done: false, priority: selectedPriority, created: Date.now() });
+    save();
+    renderList();
+  }
+
+  // Input
+  const input = document.getElementById('addInput');
+  const addBtn = document.getElementById('addBtn');
+
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      addTodo(input.value);
+      input.value = '';
+    }
+  });
+
+  addBtn.addEventListener('click', () => {
+    addTodo(input.value);
+    input.value = '';
+    input.focus();
+  });
+
+  // Priority selector
+  document.querySelectorAll('.pri-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedPriority = btn.dataset.pri;
+      document.querySelectorAll('.pri-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  // Filters
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      filter = btn.dataset.filter;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderList();
+    });
+  });
+
+  function escapeHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // Init
+  renderList();
+</script>
+</body>
+</html>
