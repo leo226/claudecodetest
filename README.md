@@ -2,7 +2,7 @@
 
 一个具有纸质笔记本风格的待办事项应用，提供单文件 HTML 版本和 React + TypeScript + Vite 工程化版本。
 
-![界面预览](https://img.shields.io/badge/设计风格-纸质笔记本-b5432a) ![React](https://img.shields.io/badge/React-19-61dafb) ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6) ![Vite](https://img.shields.io/badge/Vite-8-646cff)
+![界面预览](https://img.shields.io/badge/设计风格-纸质笔记本-b5432a) ![React](https://img.shields.io/badge/React-19-61dafb) ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6) ![Vite](https://img.shields.io/badge/Vite-8-646cff) ![深色模式](https://img.shields.io/badge/深色模式-支持-222)
 
 ## 功能
 
@@ -11,6 +11,7 @@
 - **完成/取消** — 点击左侧复选框切换状态
 - **优先级** — 添加时选择高 / 中 / 低，列表中以彩色圆点标示
 - **状态筛选** — 全部 / 进行中 / 已完成
+- **深色模式** — 标题栏一键切换，自动跟随系统偏好，偏好持久保存
 - **数据持久化** — 使用 `localStorage` 保存，刷新不丢失
 
 ## 项目结构
@@ -24,7 +25,8 @@
     └── src/
         ├── types.ts                   # Todo / Filter / Priority 类型定义
         ├── hooks/
-        │   └── useTodos.ts            # 状态管理 + localStorage
+        │   ├── useTodos.ts            # 状态管理 + localStorage
+        │   └── useDarkMode.ts         # 深色模式 + 系统偏好检测
         └── components/
             ├── Header.tsx             # 标题与日期
             ├── Stats.tsx              # 任务统计
@@ -68,7 +70,7 @@ npm run build
 
 ## 设计
 
-采用暖色纸质笔记本风格，字体搭配：
+采用暖色纸质笔记本风格，支持浅色/深色双主题切换，字体搭配：
 
 - **Playfair Display** — 标题
 - **Noto Serif SC** — 正文
